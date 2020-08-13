@@ -13,3 +13,18 @@
 
 - ```scrapy shell 'https://db.netkeiba.com/?pid=race_search_detail'```のようにdebugしながら実装することができてとても良い。
 - parse -> 特定のlinkを指定して個別のparse methodを適用することが出来、crawlingの実装がとても容易に出来る。
+
+> crawlingに必要なSelectorタグをcode内([net_keiba.py](https://github.com/Jumpo-523/netkeiba/blob/master/horses/spiders/net_keiba.py))整理している。
+```python
+# FROM the main page 
+#   TO race_list fc
+# response.css('div.race_calendar')[0].css("a")
+#>>> response.css('div.race_calendar')[0].css("a::attr(href)")[0].get() 
+# '/?pid=race_search_detail&date=20190803'
+
+# FROM race_list fc ::特定の日に開催されたレースの一覧リスト
+#   TO race_top_data_info fc ::特定の日に開催されたレース
+
+# FROM race_top_data_info fc ::特定の日に開催されたレース
+#   TO race_table_01 nk_tb_common ::そのレース結果のHTMLテーブルタグ
+```
