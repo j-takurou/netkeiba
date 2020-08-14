@@ -1,4 +1,4 @@
-import scrapy
+import scrapy, re
 
 class KeibaSpider(scrapy.Spider):
     name = "keiba"
@@ -7,8 +7,12 @@ class KeibaSpider(scrapy.Spider):
     ]
 
     def parse(self, response):
-        for quote in response.css('div.race_calendar'):
-            import pdb; pdb.set_trace()
+        for race_day_Selector in response.css('div.race_calendar a::attr(href)'):
+            
+            next_page = race_day_Selector.get()
+            if re.match(string=next_page, pattern='/race/list/\d{8}/'):
+                next_page = response.urljoin(next_page)
+                yield scrapy.Request(next_page, callback=self.parse_RaceList) 
 
             # yield {
             #     'text': quote.css('span.text::text').get(),
@@ -18,17 +22,59 @@ class KeibaSpider(scrapy.Spider):
             # FROM the main page 
             #   TO race_list fc
             # response.css('div.race_calendar')[0].css("a")
-            #>>> response.css('div.race_calendar')[0].css("a::attr(href)")[0].get() 
-            # '/?pid=race_search_detail&date=20190803'
+            #>>> response.css('div.race_calendar')[0].css("a::attr(href)")[0].get()
+            # /race/list/
+            # "https://db.netkeiba.com/race/list/20200801/"
 
-            # FROM race_list fc ::特定の日に開催されたレースの一覧リスト
-            #   TO race_top_data_info fc ::特定の日に開催されたレース
+            # if "race_table" in response.css("table")[0].attrib["class"]:
+            #     """レース結果テーブル"""
+            #     # <tr> tagが1行
+            # race_result = response.css("table")[0].css("tr")  
+            # [td.get() for td in race_result[1].css('td')]   
+            #    '<td class="txt_l w3ml" nowrap>\n<a href="/owner/879800/" title="雅苑興業">雅苑興業</a>\n\n</td>',
+                            # '<td class="txt_r" nowrap>510.0</td>'] 
+    def parse_RaceList(self, response):
+        # '/race/list/20200801/'
+        # FROM race_list fc ::特定の日に開催されたレースの一覧リスト
+        #   TO race_top_data_info fc ::特定の日に開催されたレース
+        # "/race/202004020312/"
+        # "/race/movie/202004020312/"にはクロールしない。
+        # import pdb; pdb.set_trace()
+        for RaceListSelector in response.css("div.race_list"):
+            for RaceSelector in RaceListSelector.css("a::attr(href)"):
+                next_page = RaceSelector.get()
+                if "movie" not in next_page:
+                    next_page = response.urljoin(next_page)
+                    yield scrapy.Request(next_page, callback=self.parse_Race)
 
-            # FROM race_top_data_info fc ::特定の日に開催されたレース
-            #   TO race_table_01 nk_tb_common ::そのレース結果のHTMLテーブルタグ
+    def parse_Race(self, response):
+        # import pdb; pdb.set_trace()
+        # FROM race_top_data_info fc ::特定の日に開催されたレース
+        #   TO race_table_01 nk_tb_common ::そのレース結果のHTMLテーブルタグ
+        response = response.replace(body=response.body.replace(b'<br>', b''))
+        # Raceの基礎情報
+        # 2歳未勝利,芝右1500m / 天候 : 晴 / 芝 : 良 / 発走 : 09:50など、
+        result_dict = {}
+        result_dict["base_info"] =\
+            response.css("div.data_intro")[0].css("diary_snap_cut span")[0].get()
 
+        for table in response.css("table"):
+            if "race_table_" in table.attrib["class"]:
+                race_result = table.css("tr")
+                # race_result[0]:th
+                remove_html_tag = lambda text:re.sub(r'<[^>]*?>', ' ', text)
+                columns = [remove_html_tag(th.get()) for th in race_result[0].css("tr th")]
 
-        next_page = response.css('li.next a::attr(href)').get()
-        if next_page is not None:
-            next_page = response.urljoin(next_page)
-            yield scrapy.Request(next_page, callback=self.parse)
+                # race_result[1:]:tr
+                # elements of all horses
+                #  race_result[1].css("td")
+                results = []
+                for tr in race_result[1:]:
+                    results.append([remove_html_tag(td.get()).strip() for td in tr.css("td")])
+                
+                result_dict["result_columns"] = columns
+                result_dict["race_result"] = results
+
+                return result_dict
+
+                # [td.get() for td in race_result[1].css('td')]   
