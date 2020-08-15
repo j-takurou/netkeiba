@@ -9,6 +9,10 @@
 
 
 
+## How to use
+
+horses dirにて```scrapy crawl keiba```コマンドを実行していただくとデータを抽出してくれる。
+
 ## Memo:
 
 - ```scrapy shell 'https://db.netkeiba.com/?pid=race_search_detail'```のようにdebugしながら実装することができてとても良い。
