@@ -9,4 +9,7 @@ import scrapy
 class HorsesItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
-    pass
+    base_info = scrapy.Field()
+    result_columns = scrapy.Field()
+    race_result = scrapy.Field()
+

@@ -28,3 +28,8 @@
 # FROM race_top_data_info fc ::特定の日に開催されたレース
 #   TO race_table_01 nk_tb_common ::そのレース結果のHTMLテーブルタグ
 ```
+
+- next_pageのurlの渡し方を間違えていた。
+- 動作確認未
+8/15
+- 次は、先月・先々月のデータを取得出来るようにする。

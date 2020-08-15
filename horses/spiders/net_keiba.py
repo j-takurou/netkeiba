@@ -1,4 +1,5 @@
 import scrapy, re
+from horses.items import HorsesItem
 
 class KeibaSpider(scrapy.Spider):
     name = "keiba"
@@ -13,26 +14,6 @@ class KeibaSpider(scrapy.Spider):
             if re.match(string=next_page, pattern='/race/list/\d{8}/'):
                 next_page = response.urljoin(next_page)
                 yield scrapy.Request(next_page, callback=self.parse_RaceList) 
-
-            # yield {
-            #     'text': quote.css('span.text::text').get(),
-            #     'author': quote.css('small.author::text').get(),
-            #     'tags': quote.css('div.tags a.tag::text').getall(),
-            # }
-            # FROM the main page 
-            #   TO race_list fc
-            # response.css('div.race_calendar')[0].css("a")
-            #>>> response.css('div.race_calendar')[0].css("a::attr(href)")[0].get()
-            # /race/list/
-            # "https://db.netkeiba.com/race/list/20200801/"
-
-            # if "race_table" in response.css("table")[0].attrib["class"]:
-            #     """レース結果テーブル"""
-            #     # <tr> tagが1行
-            # race_result = response.css("table")[0].css("tr")  
-            # [td.get() for td in race_result[1].css('td')]   
-            #    '<td class="txt_l w3ml" nowrap>\n<a href="/owner/879800/" title="雅苑興業">雅苑興業</a>\n\n</td>',
-                            # '<td class="txt_r" nowrap>510.0</td>'] 
     def parse_RaceList(self, response):
         # '/race/list/20200801/'
         # FROM race_list fc ::特定の日に開催されたレースの一覧リスト
@@ -54,7 +35,7 @@ class KeibaSpider(scrapy.Spider):
         response = response.replace(body=response.body.replace(b'<br>', b''))
         # Raceの基礎情報
         # 2歳未勝利,芝右1500m / 天候 : 晴 / 芝 : 良 / 発走 : 09:50など、
-        result_dict = {}
+        result_dict = HorsesItem()
         result_dict["base_info"] =\
             response.css("div.data_intro")[0].css("diary_snap_cut span")[0].get()
 
