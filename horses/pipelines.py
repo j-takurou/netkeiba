@@ -10,4 +10,7 @@ from itemadapter import ItemAdapter
 
 class HorsesPipeline:
     def process_item(self, item, spider):
+        # Validation of scraped Data
+        # and pre-preprocessing
         return item
+    

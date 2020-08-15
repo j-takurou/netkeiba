@@ -3,17 +3,24 @@ from horses.items import HorsesItem
 
 class KeibaSpider(scrapy.Spider):
     name = "keiba"
+    count = 0
     start_urls = [
         'https://db.netkeiba.com/?pid=race_search_detail',
     ]
 
     def parse(self, response):
-        for race_day_Selector in response.css('div.race_calendar a::attr(href)'):
-            
+        
+        for race_day_Selector in response.css('div.race_calendar a::attr(href)'):    
             next_page = race_day_Selector.get()
             if re.match(string=next_page, pattern='/race/list/\d{8}/'):
                 next_page = response.urljoin(next_page)
-                yield scrapy.Request(next_page, callback=self.parse_RaceList) 
+                yield scrapy.Request(next_page, callback=self.parse_RaceList)
+        # race calendarのracelistごとのscrapingが終わったら、次の月のページをcrawlする。
+        self.count += 1
+        if self.count < 5:#5ヶ月分取ってくる。
+            # Get next page and DO the same as self.parse did.
+            pass
+
     def parse_RaceList(self, response):
         # '/race/list/20200801/'
         # FROM race_list fc ::特定の日に開催されたレースの一覧リスト
