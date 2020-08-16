@@ -1,5 +1,6 @@
 import scrapy, re
 from horses.items import HorsesItem
+import time
 
 class KeibaSpider(scrapy.Spider):
     name = "keiba"
@@ -28,6 +29,7 @@ class KeibaSpider(scrapy.Spider):
         # "/race/202004020312/"
         # "/race/movie/202004020312/"にはクロールしない。
         # import pdb; pdb.set_trace()
+        time.sleep(3)
         for RaceListSelector in response.css("div.race_list"):
             for RaceSelector in RaceListSelector.css("a::attr(href)"):
                 next_page = RaceSelector.get()
@@ -50,7 +52,7 @@ class KeibaSpider(scrapy.Spider):
             if "race_table_" in table.attrib["class"]:
                 race_result = table.css("tr")
                 # race_result[0]:th
-                remove_html_tag = lambda text:re.sub(r'<[^>]*?>', ' ', text)
+                remove_html_tag = lambda text:re.sub(r'<[^>]*?>', ' ', text).strip()
                 columns = [remove_html_tag(th.get()) for th in race_result[0].css("tr th")]
 
                 # race_result[1:]:tr
@@ -58,11 +60,18 @@ class KeibaSpider(scrapy.Spider):
                 #  race_result[1].css("td")
                 results = []
                 for tr in race_result[1:]:
-                    results.append([remove_html_tag(td.get()).strip() for td in tr.css("td")])
+                    results.append([remove_html_tag(td.get()) for td in tr.css("td")])
                 
                 result_dict["result_columns"] = columns
                 result_dict["race_result"] = results
 
                 return result_dict
 
-                # [td.get() for td in race_result[1].css('td')]   
+                # [td.get() for td in race_result[1].css('td')]
+        # Get Horse info
+
+    def parse_Horse(self, response):
+        pass
+        # Profile of horses
+        # class=db_prof_area_02
+        # [remove_html_tag(t) for t in response.css("div.db_prof_area_02")[0].css("td").getall()] 
