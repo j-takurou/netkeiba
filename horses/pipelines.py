@@ -12,5 +12,16 @@ class HorsesPipeline:
     def process_item(self, item, spider):
         # Validation of scraped Data
         # and pre-preprocessing
+        # データによって渡すパイプラインの変え方を調べる。
+        # ->単純に別のItemクラスを充てがえばいい気がしている。
+        # tidied_result = {}
+        # import pdb; pdb.set_trace()
+        # columns = item["result_columns"]
+        # race_result = item["race_result"]
+        # for horse in race_result:
+        #     for col in columns:
+        #         tidied_result
+        #         # TBD
+
         return item
     
